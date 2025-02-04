@@ -1,4 +1,10 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/roles.decorator'; // Import the metadata key
@@ -14,7 +20,7 @@ export class RolesGuard implements CanActivate {
     // Check if the route is marked as public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(), // Check method-level metadata
-      context.getClass(),  // Check class-level metadata
+      context.getClass(), // Check class-level metadata
     ]);
 
     if (isPublic) {
@@ -57,7 +63,9 @@ export class RolesGuard implements CanActivate {
     const userPermissions = userRole.permissions.map((p) => p.name);
 
     // Check if the user has any of the required roles or permissions
-    const hasPermission = routeRole.roles.some((role) => userPermissions.includes(role));
+    const hasPermission = routeRole.roles.some((role) =>
+      userPermissions.includes(role),
+    );
     if (!hasPermission) {
       throw new ForbiddenException('Insufficient permissions');
     }

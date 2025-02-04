@@ -9,9 +9,9 @@ import { SalaryModule } from './salary/salary.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { PrismaModule } from 'prisma/prisma.module';
 import { RouteRoleModule } from './route-role/route-role.module';
-import {AuthGuard} from './guards/auth.guard';
-import {RolesGuard} from './guards/roles.guard';
-import {RouteRoleService} from './route-role/route-role.service';
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { RouteRoleService } from './route-role/route-role.service';
 import { APP_GUARD } from '@nestjs/core';
 import { PermissionModule } from './permission/permission.module';
 

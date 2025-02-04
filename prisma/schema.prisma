@@ -9,16 +9,21 @@ datasource db {
 
 // User Model
 model User {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  email       String       @unique
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
   password    String
   name        String?
-  roles       UserRole[] // Explicit relation to roles via UserRole table
-  leaves      Leave[]
-  salaries    Salary[]
-  attendances Attendance[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  phoneNumber String?
+  address     String?
+  role        Role     @relation(fields: [roleId], references: [id])
+  roleId      String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  Leave      Leave[]
+  UserRole   UserRole[]
+  Salary     Salary[]
+  Attendance Attendance[]
 }
 
 // Role Model
@@ -30,6 +35,8 @@ model Role {
   users       UserRole[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+
+  User User[]
 }
 
 // Permission Model
@@ -65,7 +72,7 @@ model RolePermission {
   @@unique([roleId, permissionId])
 }
 
-//route role
+// Route-Role Mapping
 model RouteRole {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   route     String   @unique // The route path (e.g., "/salary/all")
@@ -100,12 +107,27 @@ model Salary {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
   amount    Float
-  month     String // e.g., "January", "February"
+  month     Month // Use an enum for months
   year      Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+}
+
+enum Month {
+  JANUARY
+  FEBRUARY
+  MARCH
+  APRIL
+  MAY
+  JUNE
+  JULY
+  AUGUST
+  SEPTEMBER
+  OCTOBER
+  NOVEMBER
+  DECEMBER
 }
 
 // Attendance Model

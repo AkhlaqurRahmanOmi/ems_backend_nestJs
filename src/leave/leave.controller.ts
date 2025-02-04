@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Param, Patch, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Patch,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LeaveService } from './leave.service';
 import { ApplyLeaveDto } from './dto/apply-leave.dto';
@@ -35,8 +44,11 @@ export class LeaveController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
-  @Roles('ADMIN', 'HR','TEAM_LEAD') // Ensure only admin and manager roles can access this route
-  updateLeaveStatus(@Param('id') id: string, @Body() body: UpdateLeaveStatusDto) {
+  @Roles('ADMIN', 'HR', 'TEAM_LEAD') // Ensure only admin and manager roles can access this route
+  updateLeaveStatus(
+    @Param('id') id: string,
+    @Body() body: UpdateLeaveStatusDto,
+  ) {
     return this.leaveService.updateLeaveStatus({ ...body, leaveId: id });
   }
 }
