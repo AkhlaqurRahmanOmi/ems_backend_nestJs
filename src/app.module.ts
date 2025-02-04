@@ -9,10 +9,11 @@ import { SalaryModule } from './salary/salary.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { PrismaModule } from 'prisma/prisma.module';
 import { RouteRoleModule } from './route-role/route-role.module';
-import {AuthGuard} from '@nestjs/passport';
+import {AuthGuard} from './guards/auth.guard';
 import {RolesGuard} from './guards/roles.guard';
 import {RouteRoleService} from './route-role/route-role.service';
 import { APP_GUARD } from '@nestjs/core';
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -24,13 +25,14 @@ import { APP_GUARD } from '@nestjs/core';
     SalaryModule,
     AttendanceModule,
     RouteRoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
-      useClass: AuthGuard('jwt'), // Apply JWT authentication globally
+      useClass: AuthGuard, // Apply JWT authentication globally
     },
     {
       provide: APP_GUARD,

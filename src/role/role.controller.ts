@@ -20,7 +20,7 @@ export class RoleController {
   }
 
   // Get all roles
-  @Get()
+  @Get('all')
   getRoles() {
     return this.roleService.getRoles();
   }

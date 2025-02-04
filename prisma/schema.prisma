@@ -26,8 +26,8 @@ model Role {
   id          String           @id @default(auto()) @map("_id") @db.ObjectId
   name        String           @unique
   description String?
-  permissions RolePermission[] // Explicit relation to permissions via RolePermission table
-  users       UserRole[] // Explicit relation to users via UserRole table
+  permissions RolePermission[] // Many-to-many relationship with Permission
+  users       UserRole[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
@@ -37,7 +37,7 @@ model Permission {
   id          String           @id @default(auto()) @map("_id") @db.ObjectId
   name        String           @unique
   description String?
-  roles       RolePermission[] // Explicit relation to roles via RolePermission table
+  roles       RolePermission[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
@@ -56,14 +56,13 @@ model UserRole {
 
 // Join Table: Role-Permission Relationship
 model RolePermission {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
-  roleId       String @db.ObjectId
-  permissionId String @db.ObjectId
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  roleId       String     @db.ObjectId
+  permissionId String     @db.ObjectId
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
 
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
-
-  @@unique([roleId, permissionId]) // Ensure uniqueness of the combination
+  @@unique([roleId, permissionId])
 }
 
 //route role

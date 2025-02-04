@@ -3,6 +3,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { LeaveService } from './leave.service';
 import { ApplyLeaveDto } from './dto/apply-leave.dto';
 import { UpdateLeaveStatusDto } from './dto/update-leave-status.dto';
+import { Public, Roles } from '../decorators/roles.decorator';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('leave')
 export class LeaveController {
@@ -10,6 +12,7 @@ export class LeaveController {
 
   @Post()
   @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
+  @Public()
   applyForLeave(@Request() req, @Body() body: ApplyLeaveDto) {
     const userId = req.user.id; // Extract user ID from JWT token
     console.log('User ID:', userId); // Debugging line
@@ -32,6 +35,7 @@ export class LeaveController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
+  @Roles('ADMIN', 'HR','TEAM_LEAD') // Ensure only admin and manager roles can access this route
   updateLeaveStatus(@Param('id') id: string, @Body() body: UpdateLeaveStatusDto) {
     return this.leaveService.updateLeaveStatus({ ...body, leaveId: id });
   }
