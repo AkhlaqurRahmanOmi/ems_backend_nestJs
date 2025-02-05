@@ -13,6 +13,8 @@ export class RoleService {
 
     // Create the role
     const role = await this.prisma.role.create({
+    // @ts-ignore
+
       data: {
         name,
         description,

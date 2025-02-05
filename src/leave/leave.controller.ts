@@ -2,53 +2,46 @@ import {
   Controller,
   Post,
   Body,
-  Get,
   Param,
-  Patch,
-  Request,
   UseGuards,
+  Get,
+  Request
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '../guards/auth.guard'; // Import your custom AuthGuard
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
 import { LeaveService } from './leave.service';
 import { ApplyLeaveDto } from './dto/apply-leave.dto';
 import { UpdateLeaveStatusDto } from './dto/update-leave-status.dto';
-import { Public, Roles } from '../decorators/roles.decorator';
-import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('leave')
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
+  // Apply for leave
   @Post()
-  @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
-  @Public()
+  @UseGuards(AuthGuard) // Use your custom AuthGuard
   applyForLeave(@Request() req, @Body() body: ApplyLeaveDto) {
     const userId = req.user.id; // Extract user ID from JWT token
-    console.log('User ID:', userId); // Debugging line
     return this.leaveService.applyForLeave(userId, body);
   }
 
-  @Get('my')
-  @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
-  getMyLeaveRequests(@Request() req) {
-    const userId = req.user.id; // Extract user ID from JWT token
-    console.log('User ID:', userId); // Debugging line
-    return this.leaveService.getLeaveRequests(userId);
-  }
-
-  @Get('all')
-  @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
-  getAllLeaveRequests() {
-    return this.leaveService.getAllLeaveRequests();
-  }
-
-  @Patch(':id')
-  @UseGuards(AuthGuard('jwt')) // Ensure this guard is applied
-  @Roles('ADMIN', 'HR', 'TEAM_LEAD') // Ensure only admin and manager roles can access this route
+  // Approve or reject leave (HR/Admin only)
+  @Post(':id/status')
+  @UseGuards(AuthGuard, RolesGuard) // Use both AuthGuard and RolesGuard
+  @Roles('HR', 'ADMIN') // Only HR and ADMIN can approve/reject leave
   updateLeaveStatus(
-    @Param('id') id: string,
+    @Param('id') leaveId: string,
     @Body() body: UpdateLeaveStatusDto,
   ) {
-    return this.leaveService.updateLeaveStatus({ ...body, leaveId: id });
+    return this.leaveService.updateLeaveStatus(leaveId, body);
+  }
+
+  // Get leave history for the logged-in user
+  @Get('history')
+  @UseGuards(AuthGuard) // Use your custom AuthGuard
+  getLeaveHistory(@Request() req) {
+    const userId = req.user.id; // Extract user ID from JWT token
+    return this.leaveService.getLeaveHistory(userId);
   }
 }

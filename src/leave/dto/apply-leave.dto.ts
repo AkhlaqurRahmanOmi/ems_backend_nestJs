@@ -1,12 +1,20 @@
-import { IsNotEmpty, IsString, IsDate } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+
+export enum LeaveType {
+  CASUAL = 'CASUAL',
+  SICK = 'SICK',
+  EARNED = 'EARNED',
+}
 
 export class ApplyLeaveDto {
   @IsNotEmpty()
-  @IsDate()
+  @IsEnum(LeaveType)
+  type: LeaveType;
+
+  @IsNotEmpty()
   startDate: Date;
 
   @IsNotEmpty()
-  @IsDate()
   endDate: Date;
 
   @IsNotEmpty()
