@@ -14,6 +14,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { RouteRoleService } from './route-role/route-role.service';
 import { APP_GUARD } from '@nestjs/core';
 import { PermissionModule } from './permission/permission.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PermissionModule } from './permission/permission.module';
     AttendanceModule,
     RouteRoleModule,
     PermissionModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [

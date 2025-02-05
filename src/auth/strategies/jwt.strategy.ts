@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { UserPayload } from '../types/user-payload.type';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,17 +14,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    // Fetch the user and include their role
+  async validate(payload: any): Promise<UserPayload> {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      include: { roles: true }, // Include the user's role
+      include: { role: true }, // Include the user's role
     });
 
     if (!user) {
       throw new Error('User not found');
     }
 
-    return user; // This populates `req.user` with the user and their role
+    return {
+      sub: user.id,
+      email: user.email,
+      role: user.role.name, // Extract the role name
+    };
   }
 }

@@ -13,9 +13,29 @@ export class AuthService {
   // Register a new user
   async register(email: string, password: string, name: string) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.prisma.user.create({
-      data: { email, password: hashedPassword, name },
+
+    // Find or create the default "USER" role
+    const defaultRole = await this.prisma.role.findUnique({
+      where: { name: 'USER' },
     });
+
+    if (!defaultRole) {
+      throw new Error('Default role "USER" not found');
+    }
+
+    // Create the user with the default role
+    // @ts-ignore
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        role: {
+          connect: { id: defaultRole.id }, // Link the user to the "USER" role
+        },
+      },
+    });
+
     return user;
   }
 
