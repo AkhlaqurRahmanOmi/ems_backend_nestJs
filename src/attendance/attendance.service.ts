@@ -1,109 +1,81 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AttendanceStatus } from '@prisma/client';
+import { CreateAttendanceDto } from './dto/create-attendance.dto';
+import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 
 @Injectable()
 export class AttendanceService {
   constructor(private prisma: PrismaService) {}
 
-  // Helper function to parse time strings (e.g., "09:00")
-  private parseTime(timeString: string): Date {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0); // Set time to the specified hour and minute
-    return date;
-  }
-
-  // Mark attendance for the logged-in user
-  async markAttendance(userId: string, status: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of the day
-
-    // Validate the status against the AttendanceStatus enum
-    if (!Object.values(AttendanceStatus).includes(status as AttendanceStatus)) {
-      throw new Error('Invalid attendance status');
-    }
-
-    // Expected login time (e.g., 9:00 AM)
-    const EXPECTED_LOGIN_TIME = this.parseTime(process.env.EXPECTED_LOGIN_TIME || '09:00');
-
-    // Check if attendance already exists for today
-    const existingAttendance = await this.prisma.attendance.findFirst({
-      where: {
-        userId,
-        date: {
-          gte: today,
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // End of the day
-        },
-      },
-    });
-
-    if (existingAttendance) {
-      throw new Error('Attendance already marked for today');
-    }
-
-    // Check if the user is late
-    const currentTime = new Date();
-    const isLate = currentTime > EXPECTED_LOGIN_TIME;
-
-    // Create a new attendance record
+  // Record attendance
+  async createAttendance(data: CreateAttendanceDto) {
     return this.prisma.attendance.create({
       data: {
-        userId,
-        date: new Date(),
-        status: status as AttendanceStatus, // Cast to AttendanceStatus
-        loginTime: currentTime,
-        isLate,
+        userId: data.userId,
+        date: data.date,
+        status: data.status,
+        loginTime: data.loginTime,
+        logoutTime: data.logoutTime,
+        isLate: this.isLate(data.loginTime),
+        isEarlyLogout: this.isEarlyLogout(data.logoutTime),
       },
     });
   }
 
-  // Log out the user and update logout time
-  async logout(userId: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of the day
-
-    // Expected logout time (e.g., 5:00 PM)
-    const EXPECTED_LOGOUT_TIME = this.parseTime(process.env.EXPECTED_LOGOUT_TIME || '17:00');
-
-    // Find today's attendance record
-    const attendance = await this.prisma.attendance.findFirst({
+  // View attendance for a specific user or all users within a date range
+  async getAttendance(userId?: string, startDate?: Date, endDate?: Date) {
+    return this.prisma.attendance.findMany({
       where: {
         userId,
         date: {
-          gte: today,
-          lt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // End of the day
+          gte: startDate,
+          lte: endDate,
         },
       },
+      include: { user: true },
     });
+  }
 
-    if (!attendance) {
-      throw new Error('No attendance record found for today');
-    }
-
-    if (attendance.logoutTime) {
-      throw new Error('You have already logged out today');
-    }
-
-    // Check if the user is logging out early
-    const currentTime = new Date();
-    const isEarlyLogout = currentTime < EXPECTED_LOGOUT_TIME;
-
-    // Update the logout time
-    return this.prisma.attendance.update({
-      where: { id: attendance.id },
-      data: {
-        logoutTime: currentTime,
-        isEarlyLogout,
+  // Fetch attendance for the logged-in user
+  async getMyAttendance(userId: string, startDate?: Date, endDate?: Date) {
+    return this.prisma.attendance.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
       },
     });
   }
 
-  // Get attendance history for the logged-in user
-  async getMyAttendance(userId: string) {
-    return this.prisma.attendance.findMany({
-      where: { userId },
-      orderBy: { date: 'desc' }, // Order by date in descending order
+  // Update attendance
+  async updateAttendance(id: string, data: UpdateAttendanceDto) {
+    return this.prisma.attendance.update({
+      where: { id },
+      data: {
+        status: data.status,
+        loginTime: data.loginTime,
+        logoutTime: data.logoutTime,
+        isLate: data.isLate ?? this.isLate(data.loginTime),
+        isEarlyLogout: data.isEarlyLogout ?? this.isEarlyLogout(data.logoutTime),
+      },
     });
+  }
+
+  // Helper method to determine if the user is late
+  private isLate(loginTime?: Date): boolean {
+    if (!loginTime) return false;
+    const standardLoginTime = new Date(loginTime);
+    standardLoginTime.setHours(9, 0, 0, 0); // Standard login time: 9:00 AM
+    return loginTime > standardLoginTime;
+  }
+
+  // Helper method to determine if the user logged out early
+  private isEarlyLogout(logoutTime?: Date): boolean {
+    if (!logoutTime) return false;
+    const standardLogoutTime = new Date(logoutTime);
+    standardLogoutTime.setHours(17, 0, 0, 0); // Standard logout time: 5:00 PM
+    return logoutTime < standardLogoutTime;
   }
 }

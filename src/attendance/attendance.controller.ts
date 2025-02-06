@@ -3,38 +3,66 @@ import {
   Post,
   Body,
   Get,
+  Query,
+  Param,
+  Patch,
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '../guards/auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
 import { AttendanceService } from './attendance.service';
-import { UserPayload } from '../auth/types/user-payload.type';
+import { CreateAttendanceDto } from './dto/create-attendance.dto';
+import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 
 @Controller('attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  // Mark attendance for the logged-in user
-  @Post('login')
-  @UseGuards(AuthGuard('jwt'))
-  async markAttendance(@Request() req: Request & { user: UserPayload }, @Body('status') status: string) {
-    const userId = req.user.sub; // Extract user ID from JWT token
-    return this.attendanceService.markAttendance(userId, status);
+  // Record attendance
+  @Post()
+  @UseGuards(AuthGuard)
+  createAttendance(@Body() body: CreateAttendanceDto) {
+    return this.attendanceService.createAttendance(body);
   }
 
-  // Log out the user
-  @Post('logout')
-  @UseGuards(AuthGuard('jwt'))
-  async logout(@Request() req: Request & { user: UserPayload }) {
-    const userId = req.user.sub; // Extract user ID from JWT token
-    return this.attendanceService.logout(userId);
+  // View attendance for a specific user or all users within a date range
+  @Get()
+  @UseGuards(AuthGuard)
+  getAttendance(
+    @Query('userId') userId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.attendanceService.getAttendance(
+      userId,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
   }
 
-  // Get attendance history for the logged-in user
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  async getMyAttendance(@Request() req: Request & { user: UserPayload }) {
-    const userId = req.user.sub; // Extract user ID from JWT token
-    return this.attendanceService.getMyAttendance(userId);
+  // Fetch attendance for the logged-in user
+  @Get('my')
+  @UseGuards(AuthGuard)
+  getMyAttendance(
+    @Request() req,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const userId = req.user.id; // Extract user ID from JWT token
+    return this.attendanceService.getMyAttendance(
+      userId,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+  }
+
+  // Update attendance
+  @Patch(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('HR', 'ADMIN') // Only HR and ADMIN can update attendance
+  updateAttendance(@Param('id') id: string, @Body() body: UpdateAttendanceDto) {
+    return this.attendanceService.updateAttendance(id, body);
   }
 }

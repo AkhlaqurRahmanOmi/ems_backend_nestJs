@@ -5,7 +5,9 @@ import {
   Body,
   Param,
   UseGuards,
-  Request
+  Request,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../guards/roles.guard';
@@ -20,15 +22,16 @@ export class UserController {
   // Get the logged-in user's profile
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  getMyProfile(@Request() req) {
+  async getMyProfile(@Request() req) {
     const userId = req.user.id; // Extract user ID from JWT token
     return this.userService.getMyProfile(userId);
   }
 
   // Update the logged-in user's profile
   @Post('me')
+  @HttpCode(HttpStatus.OK) // Use HTTP 200 for updates instead of 201
   @UseGuards(AuthGuard('jwt'))
-  updateMyProfile(
+  async updateMyProfile(
     @Request() req,
     @Body() body: UpdateUserProfileDto,
   ) {
@@ -40,15 +43,16 @@ export class UserController {
   @Get('all')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('HR', 'ADMIN') // Only HR and ADMIN can access this route
-  getAllUsers() {
+  async getAllUsers() {
     return this.userService.getAllUsers();
   }
 
   // Update another user's profile (HR/Admin only)
   @Post(':id')
+  @HttpCode(HttpStatus.OK) // Use HTTP 200 for updates instead of 201
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('HR', 'ADMIN') // Only HR and ADMIN can access this route
-  updateUserProfile(
+  async updateUserProfile(
     @Param('id') userId: string,
     @Body() body: UpdateUserProfileDto,
   ) {

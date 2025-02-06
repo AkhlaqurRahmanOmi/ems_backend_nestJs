@@ -8,12 +8,6 @@ import { Public } from '../decorators/roles.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  // Register a new user
-  @Public()
-  @Post('register')
-  async register(@Body() body: RegisterDto) {
-    return this.authService.register(body.email, body.password, body.name);
-  }
   // Login and generate JWT token
   @Post('login')
   @Public()

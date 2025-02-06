@@ -9,16 +9,18 @@ datasource db {
 
 // User Model
 model User {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  email       String   @unique
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  email       String    @unique
   password    String
   name        String?
   phoneNumber String?
   address     String?
-  role        Role     @relation(fields: [roleId], references: [id])
-  roleId      String   @db.ObjectId
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  employeeId  String?   @unique
+  joinDate    DateTime?
+  role        Role      @relation(fields: [roleId], references: [id])
+  roleId      String    @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   Leave      Leave[]
   UserRole   UserRole[]
@@ -142,16 +144,16 @@ enum Month {
 
 // Attendance Model
 model Attendance {
-  id            String           @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String           @db.ObjectId
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @db.ObjectId // Reference to the User model
   date          DateTime
-  status        AttendanceStatus @default(PRESENT)
-  loginTime     DateTime         @default(now())
+  status        String // e.g., "PRESENT", "ABSENT", "LEAVE"
+  loginTime     DateTime?
   logoutTime    DateTime?
-  isLate        Boolean? // Flag to indicate if the user was late
-  isEarlyLogout Boolean? // Flag to indicate if the user logged out early
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  isLate        Boolean   @default(false)
+  isEarlyLogout Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
