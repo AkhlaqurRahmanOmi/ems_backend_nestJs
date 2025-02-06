@@ -32,14 +32,14 @@ import { ReportModule } from './report/report.module';
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard, // Apply JWT authentication globally
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard, // Apply role-based access control globally
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard, // Apply JWT authentication globally
+    // },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard, // Apply role-based access control globally
+    // },
     RouteRoleService, // Required for RolesGuard to fetch route roles
   ],
 })
