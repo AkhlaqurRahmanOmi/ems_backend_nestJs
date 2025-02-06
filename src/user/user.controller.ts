@@ -14,11 +14,18 @@ import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { UserService } from './user.service';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('HR', 'ADMIN') // Only HR and ADMIN can create users
+  createUser(@Body() body: CreateUserDto) {
+    return this.userService.createUser(body);
+  }
   // Get the logged-in user's profile
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
