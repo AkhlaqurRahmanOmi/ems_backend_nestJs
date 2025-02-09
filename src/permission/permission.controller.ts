@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Delete, Param, Patch, Get } from '@nestjs/common';
+import { Controller, Post, Body, Delete, Param, Get } from '@nestjs/common';
 import { PermissionService } from './permission.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { AssignPermissionDto } from './dto/assign-permission.dto';
@@ -8,7 +8,7 @@ export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
   // Get all permissions
-  @Get('getPermissions')
+  @Get()
   getPermissions() {
     return this.permissionService.getPermissions();
   }
@@ -20,21 +20,17 @@ export class PermissionController {
   }
 
   // Assign a permission to a role
-  @Patch('assign-permissions/:roleId')
-  async assignPermissions(
-    @Param('roleId') roleId: string,
-    @Body('permissionIds') permissionIds: string[],
-  ) {
-    return this.permissionService.assignPermissionsToRole(roleId, permissionIds);
+  @Post('assign')
+  assignPermission(@Body() body: AssignPermissionDto) {
+    return this.permissionService.assignPermission(body);
   }
 
   // Remove a permission from a role
-  @Patch('remove-permissions/:roleId')
-  async removePermissions(
+  @Delete('remove/:roleId/:permissionId')
+  removePermission(
     @Param('roleId') roleId: string,
-    @Body('permissionIds') permissionIds: string[],
+    @Param('permissionId') permissionId: string,
   ) {
-    return this.permissionService.removePermissionsFromRole(roleId, permissionIds);
+    return this.permissionService.removePermission(roleId, permissionId);
   }
 }
-

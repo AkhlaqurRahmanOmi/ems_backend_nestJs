@@ -20,28 +20,21 @@ export class PermissionService {
   }
 
   // Assign a permission to a role
-  async assignPermissionsToRole(roleId: string, permissionIds: string[]) {
-    return this.prisma.role.update({
-      where: { id: roleId },
+  async assignPermission(data: AssignPermissionDto) {
+    const { roleId, permissionId } = data;
+
+    return this.prisma.rolePermission.create({
       data: {
-        permissions: {
-          connect: permissionIds.map((permissionId) => ({ id: permissionId })),
-        },
+        role: { connect: { id: roleId } },
+        permission: { connect: { id: permissionId } },
       },
-      include: { permissions: true },
     });
   }
 
   // Remove a permission from a role
-  async removePermissionsFromRole(roleId: string, permissionIds: string[]) {
-    return this.prisma.role.update({
-      where: { id: roleId },
-      data: {
-        permissions: {
-          disconnect: permissionIds.map((permissionId) => ({ id: permissionId })),
-        },
-      },
-      include: { permissions: true },
+  async removePermission(roleId: string, permissionId: string) {
+    return this.prisma.rolePermission.delete({
+      where: { roleId_permissionId: { roleId, permissionId } },
     });
   }
 }
