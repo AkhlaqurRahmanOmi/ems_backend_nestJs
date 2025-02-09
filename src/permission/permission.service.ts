@@ -7,6 +7,11 @@ import { AssignPermissionDto } from './dto/assign-permission.dto';
 export class PermissionService {
   constructor(private prisma: PrismaService) {}
 
+  // Get all permissions
+  async getPermissions() {
+    return this.prisma.permission.findMany();
+  }
+
   // Create a new permission
   async createPermission(data: CreatePermissionDto) {
     return this.prisma.permission.create({
@@ -15,21 +20,28 @@ export class PermissionService {
   }
 
   // Assign a permission to a role
-  async assignPermission(data: AssignPermissionDto) {
-    const { roleId, permissionId } = data;
-
-    return this.prisma.rolePermission.create({
+  async assignPermissionsToRole(roleId: string, permissionIds: string[]) {
+    return this.prisma.role.update({
+      where: { id: roleId },
       data: {
-        role: { connect: { id: roleId } },
-        permission: { connect: { id: permissionId } },
+        permissions: {
+          connect: permissionIds.map((permissionId) => ({ id: permissionId })),
+        },
       },
+      include: { permissions: true },
     });
   }
 
   // Remove a permission from a role
-  async removePermission(roleId: string, permissionId: string) {
-    return this.prisma.rolePermission.delete({
-      where: { roleId_permissionId: { roleId, permissionId } },
+  async removePermissionsFromRole(roleId: string, permissionIds: string[]) {
+    return this.prisma.role.update({
+      where: { id: roleId },
+      data: {
+        permissions: {
+          disconnect: permissionIds.map((permissionId) => ({ id: permissionId })),
+        },
+      },
+      include: { permissions: true },
     });
   }
 }
