@@ -12,7 +12,6 @@ import { RouteRoleModule } from './route-role/route-role.module';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { RouteRoleService } from './route-role/route-role.service';
-import { APP_GUARD } from '@nestjs/core';
 import { PermissionModule } from './permission/permission.module';
 import { ReportModule } from './report/report.module';
 
